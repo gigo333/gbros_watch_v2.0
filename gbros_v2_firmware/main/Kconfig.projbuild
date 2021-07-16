@@ -1,0 +1,178 @@
+# put here your custom config value
+menu "WIFI Configuration"
+config ESP_WIFI_SSID
+    string "WiFi SSID"
+    default "myssid"
+    help
+	SSID (network name) for the example to connect to.
+
+config ESP_WIFI_PASSWORD
+    string "WiFi Password"
+    default "mypassword"
+    help
+	WiFi password (WPA or WPA2) for the example to use.
+endmenu
+
+	
+menu "I2C Master"
+        config I2C_MASTER_SCL
+            int "SCL GPIO Num"
+            default 22
+            help
+                GPIO number for I2C Master clock line.
+
+        config I2C_MASTER_SDA
+            int "SDA GPIO Num"
+            default 21
+            help
+                GPIO number for I2C Master data line.
+
+        config I2C_MASTER_PORT_NUM
+            int "Port Number"
+            default 1
+            help
+                Port number for I2C Master device.
+
+        config I2C_MASTER_FREQUENCY
+            int "Master Frequency"
+            default 100000
+            help
+                I2C Speed of Master device.
+
+        config AXPxxx_INTERRUPT_PIN
+            int "Interrupt Pin"
+            default 35
+            help
+                axp202,192,173 interrupt pin.
+        
+endmenu
+menu "ST7789 Configuration"
+
+	config SCREEN_WIDTH
+		int "SCREEN WIDTH"
+		range 0 999
+		default 240
+		help
+			The width resolution of the screen.
+
+	config SCREEN_HEIGHT
+		int "SCREEN HEIGHT"
+		range 0 999
+		default 240
+		help
+			The height resolution of the screen.
+
+	config SCREEN_OFFSETX
+		int "GRAM X OFFSET"
+		range 0 99
+		default 0
+		help
+			When your TFT have offset(X), set it.
+
+	config SCREEN_OFFSETY
+		int "GRAM Y OFFSET"
+		range 0 99
+		default 0
+		help
+			When your TFT have offset(Y), set it.
+	
+
+	config SCREEN_MOSI_GPIO
+		int "MOSI GPIO number"
+		range 0 46
+		default 19 if IDF_TARGET_ESP32
+		default 35 if IDF_TARGET_ESP32S2
+		help
+			GPIO number (IOxx) to SPI MOSI.
+			Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to MOSI.
+			On the ESP32, GPIOs 35-39 are input-only so cannot be used as outputs.
+			On the ESP32-S2, GPIO 46 is input-only so cannot be used as outputs.
+
+	config SCREEN_SCLK_GPIO
+		int "SCLK GPIO number"
+		range 0 46
+		default 18 if IDF_TARGET_ESP32
+		default 36 if IDF_TARGET_ESP32S2
+		help
+			GPIO number (IOxx) to SPI SCLK.
+			Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to SCLK.
+			On the ESP32, GPIOs 35-39 are input-only so cannot be used as outputs.
+			On the ESP32-S2, GPIO 46 is input-only so cannot be used as outputs.
+
+	config SCREEN_CS_GPIO
+		int "CS GPIO number"
+		range -1 46
+		default 5 if IDF_TARGET_ESP32
+		default 34 if IDF_TARGET_ESP32S2
+		help
+			GPIO number (IOxx) to SPI CS.
+			When it is -1, CS isn't performed.
+			Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to CS.
+			On the ESP32, GPIOs 35-39 are input-only so cannot be used as outputs.
+			On the ESP32-S2, GPIO 46 is input-only so cannot be used as outputs.
+
+	config SCREEN_DC_GPIO
+		int "DC GPIO number"
+		range 0 46
+		default 27 if IDF_TARGET_ESP32
+		default 37 if IDF_TARGET_ESP32S2
+		help
+			GPIO number (IOxx) to SPI DC.
+			Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to DC.
+			On the ESP32, GPIOs 35-39 are input-only so cannot be used as outputs.
+			On the ESP32-S2, GPIO 46 is input-only so cannot be used as outputs.
+
+	config SCREEN_RESET_GPIO
+		int "RESET GPIO number"
+		range 0 46
+		default -1 if IDF_TARGET_ESP32
+		default 38 if IDF_TARGET_ESP32S2
+		help
+			GPIO number (IOxx) to RESET.
+			Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to RESET.
+			On the ESP32, GPIOs 35-39 are input-only so cannot be used as outputs.
+			On the ESP32-S2, GPIO 46 is input-only so cannot be used as outputs.
+
+	config SCREEN_BL_GPIO
+		int "BACKLIGHT GPIO number"
+		range -1 46
+		default 15 if IDF_TARGET_ESP32
+		default 39 if IDF_TARGET_ESP32S2
+		help
+			GPIO number (IOxx) to BACKLIGHT.
+			When it is -1, BACKLIGHT isn't performed.
+			Some GPIOs are used for other purposes (flash connections, etc.) and cannot be used to BACKLIGHT.
+			On the ESP32, GPIOs 35-39 are input-only so cannot be used as outputs.
+			On the ESP32-S2, GPIO 46 is input-only so cannot be used as outputs.
+
+	config SCREEN_INVERSION
+		bool "Enable Display Inversion"
+		default false
+		help
+			Enable Display Inversion.
+			
+	config SCREEN_ROTATION
+		bool "180 degree rotation"
+		default false
+		help
+			Rotate the screen by 180 degree
+
+endmenu
+
+menu "Touch SoftI2C menu"
+
+	config TOUCH_SOFTI2C_SDA
+	int "SDA GPIO Num"
+	range 0 46
+	default 23
+	help
+		GPIO number for software I2C Master data line (of touch board)
+		
+	config TOUCH_SOFTI2C_SCL
+	int "SCL GPIO Num"
+	range 0 46
+	default 32
+	help
+		GPIO number for software I2C Master clock line (of touch board)
+		
+endmenu
