@@ -17,11 +17,10 @@ G6 = (imgArray[:,:,1]>>2).astype(np.uint16) << 5
 B5 = (imgArray[:,:,2]>>3).astype(np.uint16)
 
 RGB565 = R5 | G6 | B5
-image=np.array(RGB565, dtype='<u2')
-image=np.resize(image,-1)   
-with open("../font/startImage.icon","wb") as f:
-    f.write(image.tobytes())
-    """f.write("short unsigned int startImg["+str(IMAGE_SIZE[0])+"]["+str(IMAGE_SIZE[1])+"]=\n{")
+image=np.array(RGB565, dtype='>u2')
+   
+with open("../main/startImage.h","w") as f:
+    f.write("short unsigned int startImg["+str(IMAGE_SIZE[0])+"]["+str(IMAGE_SIZE[1])+"]=\n{")
     j=0;
     for row in image:
         f.write("{")
@@ -34,5 +33,5 @@ with open("../font/startImage.icon","wb") as f:
             else:
                 f.write(str(column)+", ")
                 
-        f.write("\n")"""
+        f.write("\n")
 

@@ -6,26 +6,26 @@
  */
 
 #include "Menu.h"
-#include "appIcons.h"
 #include "freertos/Task.h"
 
-Menu::Menu(SPIDisplay disp, FocalTech_Class tc) {
+Menu::Menu(App * appl, SPIDisplay disp, FocalTech_Class tc) {
 	// TODO Auto-generated constructor stub
 	tft=disp;
 	touch=tc;
+	app=appl;
 }
 uint8_t Menu::run() {
-	tft.FillScreen(WHITE);
-	int i, j;
 	uint16_t x=0, y=0;
+	int i, j;
 	int selectedApp=0;
-	for(i=0; i<80; i++)
-		tft.DrawMultiPixels(0 ,i , 80, watchIcon[i]);
-	for(i=0; i<80; i++)
-		tft.DrawMultiPixels(80,i , 80, accIcon[i]);
-	for(i=0; i<80; i++)
-		tft.DrawMultiPixels(160,i , 80, cameraIcon[i]);
+	drawIcons();
 	while(selectedApp==0){
+		if(app->isNotifying()){
+			while(app->isNotifying()){
+				vTaskDelay(20 / portTICK_PERIOD_MS);
+			}
+			drawIcons();
+		}
 		bool ret = touch.getPoint(x,y);
 		if(ret){
 			for (i=0; i<3; i++)
@@ -34,10 +34,22 @@ uint8_t Menu::run() {
 						selectedApp=i+3*j+1;
 
 		}
-		if (selectedApp>2)
-				selectedApp=0;
 		vTaskDelay(20 / portTICK_PERIOD_MS);
 	}
 	return selectedApp;
 }
 
+void Menu::drawIcons(){
+	FILE *fp;
+		uint16_t *n;
+		fp = fopen("/spiffs/Icons.icon", "rb");
+		n=(uint16_t *)malloc(240*sizeof(uint16_t));
+
+		for(int i=0; i<240; i++){
+			fread(n, 240*sizeof(uint16_t), 1, fp);
+			tft.DrawMultiPixels(0 ,i , 240, n);
+		}
+
+		fclose(fp);
+		free(n);
+}

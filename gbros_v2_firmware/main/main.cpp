@@ -23,12 +23,10 @@
 #include "sensors/RTC/pcf8563.h"
 #include "sensors/utils/master_i2c.h"
 
-#include "startImage.h"
-
 #include "apps/Menu.h"
 #include "apps/App.h"
-#include "apps/clock/Clock.h"
 #include "apps/acc/Acc.h"
+#include "apps/clock/Clock.h"
 
 
 //static const char *TAG = "AXP20x";
@@ -138,7 +136,9 @@ static void axpTask(void *pvParameters){
                     	app.displayOn();
                     	vTaskDelay(100 / portTICK_PERIOD_MS);
                     	axp.setPowerOutPut(AXP202_LDO2, AXP202_ON);
-                    }else{
+                    } else if(app.isNotifying()){
+                    	app.stopNotify();
+                	} else {
                     	app.stop();
                     }
                 }
@@ -150,23 +150,53 @@ static void axpTask(void *pvParameters){
 }
 
 static void appTask(void *pvParameters){
+
+	//Vibration motor
+	gpio_set_direction(GPIO_NUM_4, GPIO_MODE_OUTPUT);
+	gpio_set_level(GPIO_NUM_4, 0);
+
+	//TFT initialization
 	SPIDisplay tft;
 	tft.begin();
-	for(int i=0; i<240; i++)
-			tft.DrawMultiPixels(0 ,i , 240, startImg[i]);
+
+	//Draw initial screen
+	tft.FillScreen(BLACK);
+
+	FILE *fp;
+	uint16_t *n;
+	fp = fopen("/spiffs/startImage.icon", "rb");
+	n=(uint16_t *)malloc(240*sizeof(uint16_t));
+
+	for(int i=0; i<240; i++){
+		fread(n, 240*sizeof(uint16_t), 1, fp);
+		tft.DrawMultiPixels(0 ,i , 240, n);
+	}
+
+	fclose(fp);
+	free(n);
+
+	//Enable TFT power from PMU
 	axp.setPowerOutPut(AXP202_LDO2, AXP202_ON);
+
+	//Touch initialization
 	FocalTech_Class touch;
 	touch = initTouch();
+
+	//RTC initialization
 	PCF8563_Class clock;
 	clock.begin(twi_read, twi_write, 0x51);
+
+	//Accelerometer initialization
 	BMA423 accel;
 	accel.begin(twi_read, twi_write, vTaskDelay,  0x19);
-	Menu menuApp(tft, touch);
+
+	//Applications initialization
+	Menu menuApp(&app, tft, touch);
 	Clock clockApp(&app, tft, axp, clock);
 	Acc accApp(&app, tft, axp, accel);
-	//axp.setChargeControlCur(300);
-	//printf("setChargeControlCur:%u\n", axp.getChargeControlCur());
+
 	vTaskDelay(5000 / portTICK_PERIOD_MS);
+
 	int selectedApp=0;
 	while(1){
 		selectedApp=menuApp.run();
@@ -174,11 +204,10 @@ static void appTask(void *pvParameters){
 			case 1:
 				clockApp.run();
 				break;
-			case 2:
+			case 3:
 				accApp.run();
 				break;
 		}
-		//vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
 }
 
@@ -190,11 +219,15 @@ void app_main(void){
     nvs_flash_init();
     SPIFF_init();
     //connectWifi();
+
+    //PMU (Power Managment Unit) initialization
 	ESP_ERROR_CHECK(i2c_master_init());
 	axp_irq_init();
 	if (axp.begin(twi_read, twi_write)) {
 		   printf("axp202 not initialized!");
 	   }
+
+	//Tasks initilization
     xTaskCreate(axpTask, "interrupts", 4096, NULL, 5, &ISR);
     xTaskCreate(appTask, "main task", 16*4096, NULL, 4, NULL);
 
