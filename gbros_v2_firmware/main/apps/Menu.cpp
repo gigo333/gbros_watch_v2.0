@@ -9,7 +9,6 @@
 #include "freertos/Task.h"
 
 Menu::Menu(App * appl, SPIDisplay disp, FocalTech_Class tc) {
-	// TODO Auto-generated constructor stub
 	tft=disp;
 	touch=tc;
 	app=appl;
@@ -18,6 +17,7 @@ uint8_t Menu::run() {
 	uint16_t x=0, y=0;
 	int i, j;
 	int selectedApp=0;
+	bool touched;
 	drawIcons();
 	while(selectedApp==0){
 		if(app->isNotifying()){
@@ -26,8 +26,8 @@ uint8_t Menu::run() {
 			}
 			drawIcons();
 		}
-		bool ret = touch.getPoint(x,y);
-		if(ret){
+		touched = touch.getPoint(x,y);
+		if(touched){
 			for (i=0; i<3; i++)
 				for(j=0; j<3; j++)
 					if (((x>i*80) && x<(i+1)*80) && ((y>j*80) && y<(j+1)*80))
@@ -41,15 +41,15 @@ uint8_t Menu::run() {
 
 void Menu::drawIcons(){
 	FILE *fp;
-		uint16_t *n;
+		uint16_t *buffer;
 		fp = fopen("/spiffs/Icons.icon", "rb");
-		n=(uint16_t *)malloc(240*sizeof(uint16_t));
+		buffer=(uint16_t *)malloc(240*sizeof(uint16_t));
 
 		for(int i=0; i<240; i++){
-			fread(n, 240*sizeof(uint16_t), 1, fp);
-			tft.DrawMultiPixels(0 ,i , 240, n);
+			fread(buffer, 240*sizeof(uint16_t), 1, fp);
+			tft.DrawMultiPixels(0 ,i , 240, buffer);
 		}
 
 		fclose(fp);
-		free(n);
+		free(buffer);
 }

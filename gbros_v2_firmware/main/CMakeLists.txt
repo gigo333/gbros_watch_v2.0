@@ -17,6 +17,7 @@ set(COMPONENT_SRCS 	"main.cpp"
 					"apps/Menu.cpp"
 					"apps/App.cpp"
 					"apps/clock/Clock.cpp"
+					"apps/timer/Timer.cpp"
 					"apps/acc/Acc.cpp"	)
 set(COMPONENT_ADD_INCLUDEDIRS "")
 

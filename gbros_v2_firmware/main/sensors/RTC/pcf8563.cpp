@@ -496,6 +496,68 @@ RTC_Date::RTC_Date(const char *date, const char *time)
     second = StringToUint8(time + 6);
 }
 
+RTC_Time::RTC_Time(
+) : hour(0), minute(0), second(0)
+{
+
+}
+
+
+RTC_Time::RTC_Time(uint8_t h,
+                   uint8_t mm,
+                   uint8_t s
+                  ) : hour(h), minute(mm), second(s)
+{
+
+}
+
+
+uint8_t RTC_Time::StringToUint8(const char *pString)
+{
+    uint8_t value = 0;
+
+    // skip leading 0 and spaces
+    while ('0' == *pString || *pString == ' ') {
+        pString++;
+    }
+
+    // calculate number until we hit non-numeral char
+    while ('0' <= *pString && *pString <= '9') {
+        value *= 10;
+        value += *pString - '0';
+        pString++;
+    }
+    return value;
+}
+
+
+
+RTC_Time::RTC_Time(const char *time)
+{
+    hour = StringToUint8(time);
+    minute = StringToUint8(time + 3);
+    second = StringToUint8(time + 6);
+}
+
+void RTC_Time::decrement(){
+	if(second==0 && minute==0 && hour!=0){
+		hour--;
+		minute=59;
+		second=59;
+	} else if(second==0){
+		minute--;
+		second=59;
+	} else {
+		second--;
+	}
+}
+bool RTC_Time::expired(){
+	if(hour==0 && minute==0 && second==0)
+		return true;
+	return false;
+}
+
+
 RTC_Alarm::RTC_Alarm(
     uint8_t m,
     uint8_t h,
@@ -517,4 +579,9 @@ uint8_t PCF8563_Class::status2()
 bool RTC_Date::operator==(RTC_Date d)
 {
     return ((d.year == year) && (d.month == month) && (d.day == day) && (d.hour == hour) &&  (d.minute == minute));
+}
+
+bool RTC_Time::operator==(RTC_Time d)
+{
+    return ((d.second == second) && (d.hour == hour) &&  (d.minute == minute));
 }

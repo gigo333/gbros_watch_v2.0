@@ -112,6 +112,24 @@ private:
     uint8_t StringToUint8(const char *pString);
 };
 
+class RTC_Time
+{
+public:
+	RTC_Time();
+	RTC_Time(const char *time);
+	RTC_Time(uint8_t hour,
+             uint8_t minute,
+             uint8_t second );
+    uint8_t hour;
+    uint8_t minute;
+    uint8_t second;
+    bool operator==(RTC_Time d);
+    void decrement(void);
+    bool expired(void);
+
+private:
+    uint8_t StringToUint8(const char *pString);
+};
 
 class RTC_Alarm
 {

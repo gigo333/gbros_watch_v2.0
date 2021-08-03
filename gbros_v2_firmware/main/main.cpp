@@ -27,6 +27,7 @@
 #include "apps/App.h"
 #include "apps/acc/Acc.h"
 #include "apps/clock/Clock.h"
+#include "apps/timer/Timer.h"
 
 
 //static const char *TAG = "AXP20x";
@@ -87,11 +88,11 @@ static void SPIFF_init(){
 
 		if (ret != ESP_OK) {
 			if (ret == ESP_FAIL) {
-				printf("Failed to mount or format filesystem");
+				printf("Failed to mount or format filesystem\n");
 			} else if (ret == ESP_ERR_NOT_FOUND) {
-				printf("Failed to find SPIFFS partition");
+				printf("Failed to find SPIFFS partition\n");
 			} else {
-				printf("Failed to initialize SPIFFS (%s)",esp_err_to_name(ret));
+				printf("Failed to initialize SPIFFS (%s)\n",esp_err_to_name(ret));
 			}
 			return;
 		}
@@ -99,9 +100,9 @@ static void SPIFF_init(){
 		size_t total = 0, used = 0;
 		ret = esp_spiffs_info(NULL, &total,&used);
 		if (ret != ESP_OK) {
-			printf("Failed to get SPIFFS partition information (%s)",esp_err_to_name(ret));
+			printf("Failed to get SPIFFS partition information (%s)\n",esp_err_to_name(ret));
 		} else {
-			printf("Partition size: total: %d, used: %d", total, used);
+			printf("Partition size: total: %d, used: %d\n", total, used);
 		}
 
 }
@@ -163,17 +164,17 @@ static void appTask(void *pvParameters){
 	tft.FillScreen(BLACK);
 
 	FILE *fp;
-	uint16_t *n;
+	uint16_t *buffer;
 	fp = fopen("/spiffs/startImage.icon", "rb");
-	n=(uint16_t *)malloc(240*sizeof(uint16_t));
+	buffer=(uint16_t *)malloc(240*sizeof(uint16_t));
 
 	for(int i=0; i<240; i++){
-		fread(n, 240*sizeof(uint16_t), 1, fp);
-		tft.DrawMultiPixels(0 ,i , 240, n);
+		fread(buffer, 240*sizeof(uint16_t), 1, fp);
+		tft.DrawMultiPixels(0 ,i , 240, buffer);
 	}
 
 	fclose(fp);
-	free(n);
+	free(buffer);
 
 	//Enable TFT power from PMU
 	axp.setPowerOutPut(AXP202_LDO2, AXP202_ON);
@@ -193,9 +194,10 @@ static void appTask(void *pvParameters){
 	//Applications initialization
 	Menu menuApp(&app, tft, touch);
 	Clock clockApp(&app, tft, axp, clock);
+	Timer timerApp(&app, tft, axp, touch, clock);
 	Acc accApp(&app, tft, axp, accel);
 
-	vTaskDelay(5000 / portTICK_PERIOD_MS);
+	//vTaskDelay(5000 / portTICK_PERIOD_MS);
 
 	int selectedApp=0;
 	while(1){
@@ -203,6 +205,9 @@ static void appTask(void *pvParameters){
 		switch(selectedApp){
 			case 1:
 				clockApp.run();
+				break;
+			case 2:
+				timerApp.run();
 				break;
 			case 3:
 				accApp.run();

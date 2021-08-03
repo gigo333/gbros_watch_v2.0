@@ -24,6 +24,7 @@
 #endif
 
 void SPIDisplay::begin(){
+	notify=false;
 	spi_master_init(&dev, CONFIG_MOSI_GPIO, CONFIG_SCLK_GPIO, CONFIG_CS_GPIO, CONFIG_DC_GPIO, CONFIG_RESET_GPIO, CONFIG_BL_GPIO);
     lcdInit(&dev, CONFIG_WIDTH, CONFIG_HEIGHT, CONFIG_OFFSETX, CONFIG_OFFSETY, CONFIG_ROTATION);
 	InitFontx(fx16G,"/spiffs/ILGH16XB.FNT",""); // 8x16Dot Gothic
@@ -38,37 +39,51 @@ void SPIDisplay::begin(){
 }
 
 void SPIDisplay::selectFont(uint8_t fontCode){
-	int i;
-	if(fontCode==FONT_GOTHIC_8x16)
-		for(i=0; i<2; i++)
-			font[i]=fx16G[i];
-	else if(fontCode==FONT_GOTHIC_12x24)
-		for(i=0; i<2; i++)
-			font[i]=fx24G[i];
-	else if(fontCode==FONT_GOTHIC_16x32)
-		for(i=0; i<2; i++)
-			font[i]=fx32G[i];
-	else if(fontCode==FONT_LATIN_16x32)
-		for(i=0; i<2; i++)
-			font[i]=fx32L[i];
-	else if(fontCode==FONT_MINCYO_8x16)
-		for(i=0; i<2; i++)
-			font[i]=fx16M[i];
-	else if(fontCode==FONT_MINCYO_12x24)
-		for(i=0; i<2; i++)
-			font[i]=fx24M[i];
-	else if(fontCode==FONT_MINCYO_16x32)
-		for(i=0; i<2; i++)
-			font[i]=fx32M[i];
+	if (!notify){
+		int i;
+		if(fontCode==FONT_GOTHIC_8x16)
+			for(i=0; i<2; i++)
+				font[i]=fx16G[i];
+		else if(fontCode==FONT_GOTHIC_12x24)
+			for(i=0; i<2; i++)
+				font[i]=fx24G[i];
+		else if(fontCode==FONT_GOTHIC_16x32)
+			for(i=0; i<2; i++)
+				font[i]=fx32G[i];
+		else if(fontCode==FONT_LATIN_16x32)
+			for(i=0; i<2; i++)
+				font[i]=fx32L[i];
+		else if(fontCode==FONT_MINCYO_8x16)
+			for(i=0; i<2; i++)
+				font[i]=fx16M[i];
+		else if(fontCode==FONT_MINCYO_12x24)
+			for(i=0; i<2; i++)
+				font[i]=fx24M[i];
+		else if(fontCode==FONT_MINCYO_16x32)
+			for(i=0; i<2; i++)
+				font[i]=fx32M[i];
+	}
 }
 
 void SPIDisplay::enableFontFill(uint16_t color){
-	dev._font_fill=1;
-	dev._font_fill_color=color;
+	if (!notify){
+		dev._font_fill=1;
+		dev._font_fill_color=color;
+	}
 }
 
 void SPIDisplay::disableFontFill(){
-	dev._font_fill=0;
+	if (!notify)
+		dev._font_fill=0;
+}
+
+void SPIDisplay::startNotify(){
+	notify=true;
+	delayMS(1000); //delay to let the display finish drawing before notifying (otherways the firmware crashes)
+}
+
+void SPIDisplay::stopNotify(){
+	notify=false;
 }
 
 void SPIDisplay::DelayMS(int ms) {
@@ -80,63 +95,87 @@ void SPIDisplay::DelayMS(int ms) {
 }*/
 
 void SPIDisplay::DrawPixel(uint16_t x, uint16_t y, uint16_t color){
-	lcdDrawPixel(&dev, x, y, color);
+	if(!notify)
+		lcdDrawPixel(&dev, x, y, color);
 }
 
 void SPIDisplay::DrawMultiPixels(uint16_t x, uint16_t y, uint16_t size, uint16_t * colors){
-	lcdDrawMultiPixels(&dev, x, y, size, colors);
+	if(!notify)
+		lcdDrawMultiPixels(&dev, x, y, size, colors);
 }
 
 void SPIDisplay::DrawFillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color){
-	lcdDrawFillRect(&dev, x1, y1, x2, y2, color);
+	if(!notify)
+		lcdDrawFillRect(&dev, x1, y1, x2, y2, color);
 }
 
 void SPIDisplay::DisplayOff(void){
-	lcdDisplayOff(&dev);
+	if(!notify)
+		lcdDisplayOff(&dev);
 }
 
 void SPIDisplay::DisplayOn(void){
-	lcdDisplayOn(&dev);
+	if(!notify)
+		lcdDisplayOn(&dev);
 }
 
 void SPIDisplay::FillScreen(uint16_t color){
+	if(!notify)
+		lcdFillScreen(&dev, color);
+}
+
+void SPIDisplay::FillScreen(){
+	if(!notify && dev._font_fill)
+		lcdFillScreen(&dev, dev._font_fill_color);
+}
+
+void SPIDisplay::__FillScreen(uint16_t color){
 	lcdFillScreen(&dev, color);
 }
 
 void SPIDisplay::DrawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color){
-	lcdDrawLine(&dev, x1, y1, x2, y2, color);
+	if(!notify)
+		lcdDrawLine(&dev, x1, y1, x2, y2, color);
 }
 
 void SPIDisplay::DrawRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t color){
-	lcdDrawRect(&dev, x1, y1, x2, y2, color);
+	if(!notify)
+		lcdDrawRect(&dev, x1, y1, x2, y2, color);
 }
 
 void SPIDisplay::DrawRectAngle(uint16_t xc, uint16_t yc, uint16_t w, uint16_t h, uint16_t angle, uint16_t color){
-	lcdDrawRectAngle(&dev, xc, yc, w, h, angle, color);
+	if(!notify)
+		lcdDrawRectAngle(&dev, xc, yc, w, h, angle, color);
 }
 
 void SPIDisplay::DrawTriangle(uint16_t xc, uint16_t yc, uint16_t w, uint16_t h, uint16_t angle, uint16_t color){
-	lcdDrawTriangle(&dev, xc, yc, w, h, angle, color);
+	if(!notify)
+		lcdDrawTriangle(&dev, xc, yc, w, h, angle, color);
 }
 
 void SPIDisplay::DrawCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color){
-	lcdDrawCircle(&dev, x0, y0, r, color);
+	if(!notify)
+		lcdDrawCircle(&dev, x0, y0, r, color);
 }
 
 void SPIDisplay::DrawFillCircle(uint16_t x0, uint16_t y0, uint16_t r, uint16_t color){
-	lcdDrawFillCircle(&dev, x0, y0, r, color);
+	if(!notify)
+		lcdDrawFillCircle(&dev, x0, y0, r, color);
 }
 
 void SPIDisplay::DrawRoundRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t r, uint16_t color){
-	lcdDrawRoundRect(&dev, x1, y1, x2, y2, r, color);
+	if(!notify)
+		lcdDrawRoundRect(&dev, x1, y1, x2, y2, r, color);
 }
 
 void SPIDisplay::DrawArrow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t w, uint16_t color){
-	lcdDrawArrow(&dev, x0, y0, x1, y1, w, color);
+	if(!notify)
+		lcdDrawArrow(&dev, x0, y0, x1, y1, w, color);
 }
 
 void SPIDisplay::DrawFillArrow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t w, uint16_t color){
-	lcdDrawFillArrow(&dev, x0, y0, x1, y1, w, color);
+	if(!notify)
+		lcdDrawFillArrow(&dev, x0, y0, x1, y1, w, color);
 }
 
 uint16_t SPIDisplay::RGB565_conv(uint16_t r, uint16_t g, uint16_t b){
@@ -144,49 +183,76 @@ uint16_t SPIDisplay::RGB565_conv(uint16_t r, uint16_t g, uint16_t b){
 }
 
 int SPIDisplay::DrawChar(uint16_t x, uint16_t y, char ascii, uint16_t color){
-	return lcdDrawChar(&dev, font, x, y, (uint8_t) ascii, color);
+	if(!notify)
+		return lcdDrawChar(&dev, font, x, y, (uint8_t) ascii, color);
+	return 1;
 }
 
 int SPIDisplay::DrawString(uint16_t x, uint16_t y, char * ascii, uint16_t color){
-	return lcdDrawString(&dev, font, x, y, (uint8_t *)ascii, color);
+	if(!notify)
+		return lcdDrawString(&dev, font, x, y, (uint8_t *)ascii, color);
+	return 1;
+}
+
+int SPIDisplay::__DrawString(uint16_t x, uint16_t y, char * ascii, uint16_t color, uint16_t fillColor){
+	uint16_t fillOld = dev._font_fill;
+	uint16_t colorOld = dev._font_fill_color;
+	int res;
+	dev._font_fill = 1;
+	dev._font_fill_color = fillColor;
+	res=lcdDrawString(&dev, fx32G, x, y, (uint8_t *)ascii, color);
+	dev._font_fill = fillOld;
+	dev._font_fill_color = colorOld;
+	return res;
 }
 
 int SPIDisplay::DrawCode(uint16_t x,uint16_t y,uint8_t code,uint16_t color){
-	return lcdDrawCode(&dev, font, x, y, code, color);
+	if(!notify)
+		return lcdDrawCode(&dev, font, x, y, code, color);
+	return 1;
 }
 
 void SPIDisplay::SetFontDirection(uint16_t dir){
-	lcdSetFontDirection(&dev, dir);
+	if(!notify)
+		lcdSetFontDirection(&dev, dir);
 }
 
 void SPIDisplay::SetFontFill(uint16_t color){
-	lcdSetFontFill(&dev, color);
+	if(!notify)
+		lcdSetFontFill(&dev, color);
 }
 
 void SPIDisplay::UnsetFontFill(void){
-	lcdUnsetFontFill(&dev);
+	if(!notify)
+		lcdUnsetFontFill(&dev);
 }
 
 void SPIDisplay::SetFontUnderLine(uint16_t color){
-	lcdSetFontUnderLine(&dev ,color);
+	if(!notify)
+		lcdSetFontUnderLine(&dev ,color);
 }
 
 void SPIDisplay::UnsetFontUnderLine(void){
-	lcdUnsetFontUnderLine(&dev);
+	if(!notify)
+		lcdUnsetFontUnderLine(&dev);
 }
 
 void SPIDisplay::BacklightOff(void){
-	lcdBacklightOff(&dev);
+	if(!notify)
+		lcdBacklightOff(&dev);
 }
 
 void SPIDisplay::BacklightOn(void){
-	lcdBacklightOn(&dev);
+	if(!notify)
+		lcdBacklightOn(&dev);
 }
 
 void SPIDisplay::InversionOff(void){
-	lcdInversionOff(&dev);
+	if(!notify)
+		lcdInversionOff(&dev);
 }
 
 void SPIDisplay::InversionOn(void){
-	lcdInversionOn(&dev);
+	if(!notify)
+		lcdInversionOn(&dev);
 }

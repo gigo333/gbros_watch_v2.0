@@ -18,6 +18,7 @@ class Clock{
 public:
 	Clock(App * appl, SPIDisplay disp, AXP20X_Class pmu, PCF8563_Class rtc);
 	void run(void);
+
 private:
 	SPIDisplay tft;
 	AXP20X_Class axp;

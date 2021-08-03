@@ -7,10 +7,8 @@
 
 #include "Acc.h"
 
-#include "freertos/Task.h"
 
 Acc::Acc(App * appl, SPIDisplay disp, AXP20X_Class pmu, BMA423 accel) {
-	// TODO Auto-generated constructor stub
 	app=appl;
 	tft=disp;
 	axp=pmu;
@@ -23,18 +21,28 @@ void Acc::run() {
 	app->start();
 	acc.enableAccel(true);
 	tft.enableFontFill(BLACK);
-	tft.FillScreen(BLACK);
+	tft.FillScreen();
 	tft.DrawString(60, 80, s1, RED);
 	tft.DrawString(60, 130, s2, GREEN);
 	tft.DrawString(60, 180, s3, BLUE);
 	acc.getAccel(data);
 	dataOld=data;
 	while(app->isRunning()){
+		if(app->isNotifying()){
+			while(app->isNotifying()){
+				tft.DelayMS(20);
+			}
+			tft.DrawString(60, 80, s1, RED);
+			tft.DrawString(60, 130, s2, GREEN);
+			tft.DrawString(60, 180, s3, BLUE);
+			acc.getAccel(data);
+			dataOld=data;
+		}
 		acc.getAccel(data);
 		if(drawAcc(data, dataOld)){
 			dataOld=data;
 		}
-		vTaskDelay(20 / portTICK_PERIOD_MS);
+		tft.DelayMS(20);
 	}
 	tft.disableFontFill();
 	acc.disableAccel();

@@ -5,12 +5,15 @@
  *      Author: user
  */
 
-#include "Clock.h"
+#include "../clock/Clock.h"
 
-#include "freertos/Task.h"
+
+/*static void taskWrapper(void* Param) {
+    static_cast<Clock *>(Param)->clockTask();
+    vTaskDelete(NULL);
+}*/
 
 Clock::Clock(App * appl, SPIDisplay disp, AXP20X_Class pmu, PCF8563_Class rtc) {
-	// TODO Auto-generated constructor stub
 	app=appl;
 	tft=disp;
 	axp=pmu;
@@ -22,11 +25,19 @@ void Clock::run() {
 	int secondBreak, breakTime=10;
 	app->start();
 	tft.enableFontFill(BLACK);
-	tft.FillScreen(BLACK);
+	tft.FillScreen();
 	tft.DrawString(56, 130, clock.formatDateTime(PCF_TIMEFORMAT_HMS), WHITE);
 	timeOld=clock.getDateTime();
 	secondBreak=timeOld.second;
 	while(app->isRunning()){
+		if(app->isNotifying()){
+			while(app->isNotifying()){
+				tft.DelayMS(20);
+			}
+			tft.DrawString(56, 130, clock.formatDateTime(PCF_TIMEFORMAT_HMS), WHITE);
+			timeOld=clock.getDateTime();
+			secondBreak=timeOld.second;
+		}
 		if(!app->isDisplayOff()){
 			time=clock.getDateTime();
 			if(getElapsedSeconds(time.second, secondBreak)<breakTime){
@@ -40,10 +51,12 @@ void Clock::run() {
 		} else {
 			secondBreak=clock.getSeconds();
 		}
-		vTaskDelay(100 / portTICK_PERIOD_MS);
+		tft.DelayMS(100);
 	}
 	tft.disableFontFill();
 }
+
+
 
 int Clock::getElapsedSeconds(int t1, int t2){
 	if (t2>t1)
@@ -81,3 +94,4 @@ bool Clock::drawTime(RTC_Date time, RTC_Date timeOld){
 	return false;
 
 }
+
